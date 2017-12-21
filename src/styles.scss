@@ -1,3 +1,38 @@
 body {
-  background: rgb(255, 102, 0);
+  background: rgb(255,255,255);
+}
+
+#app {
+	width:85%;
+	margin:0 auto;
+	background-color: #f6f6ef;
+}
+
+header {
+	height:20px;
+	padding:2px;
+	background-color: rgb(255, 102, 0);
+	display:flex;
+	flex-direction: row;
+	font-family: Verdana, Geneva, sans-serif;
+    font-size: 10pt;
+}
+
+.title {
+	font-weight:bold;
+	padding-right:4px;
+}
+
+.logo {
+	width:18px;
+	padding-right:4px;
+
+	img {
+		border:1px #FFFFFF solid;
+	}
+}
+
+section {
+	height:auto;
+	width:100%;
 }
