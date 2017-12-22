@@ -38,7 +38,7 @@ var views = {
 	    div.innerHTML = '<div class="number">'+ i +'.</div>'
 	    			  + '<div class="storyBox">'
 	    			  + '<div class="storyTitle"><a href="'+ obj.url + '">' + obj.title + '</a></div>'
-	    			  + '<div class="metaInfo"><a href="/comments/'+ obj.id + '">' + obj.descendants + ' comments</a></div>'
+	    			  + '<div class="metaInfo">'+ obj.score + ' points | <a href="/comments/'+ obj.id + '">' + obj.descendants + ' comments</a></div>'
 	    			  + '</div>';
      	document.getElementById('content').appendChild(div);
 	},
@@ -72,9 +72,11 @@ var controllers = {
 				views.renderTopStory(i+1,resp[i]);
 			}
 			views.renderMoreButton();
+			document.getElementById('alignBox').classList.add('hidden');
+
 		});
 	},
-	
+
 	loadMoreStories: function(e){
 		e.preventDefault();
 
