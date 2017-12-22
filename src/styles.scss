@@ -1,3 +1,8 @@
+/* Variables */
+$gray-text: #828282;
+
+/* CSS */
+
 body {
   background: rgb(255,255,255);
 }
@@ -34,5 +39,51 @@ header {
 
 section {
 	height:auto;
-	width:100%;
+	padding-top: 10px;
+}
+
+.storyContainer {
+	display:flex;
+	flex-direction:row;
+	margin-bottom:7px;
+	font-family: Verdana, Geneva, sans-serif;
+
+	.number {
+		text-align: right;
+	    width: 25px;
+	    font-size: 10pt;
+	    color: $gray-text;
+    	padding-right: 10px;
+	}
+
+	.storyBox {
+
+		a:visited {
+    		color: $gray-text;
+		}
+
+		.storyTitle {
+		    font-size: 10pt;
+
+		    a:link {
+			    color: #000000;
+			    text-decoration: none;
+			}
+		}
+
+		.metaInfo {
+		    font-size: 7pt;
+		    color: $gray-text;
+
+		    a:link {
+	    		color: $gray-text;
+	    		text-decoration: none;
+			}
+		}
+
+	}
+}
+
+#moreButton {
+	padding-left:35px;
 }
