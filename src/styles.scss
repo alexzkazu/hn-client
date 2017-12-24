@@ -121,22 +121,57 @@ section {
 	}
 }
 
-.commentUser, .toggle {
-    font-size: 8pt;
-    color: $gray-text;
+.commentContainer {
+	padding: 0 10px;
+	margin-bottom:10px;
+	display:flex;
 
-    a:link {
-		color: $gray-text;
-		text-decoration: none;
+	.arrowContainer {
+	    flex-flow: row;
+
+    	.arrow {
+    		width: 10px;
+    		margin-right: 6px;
+    		height: 10px;
+    		background-size:10px;
+    		background-image: url(https://news.ycombinator.com/grayarrow2x.gif);
+    	}
 	}
 
-	a:hover {
-		text-decoration: underline;
+	.commentContent {
+		flex-flow: row;
 	}
-}
 
-.commentText {
-	font-size: 9pt;
+	.metaLine {
+	display:inline-block;
+	margin-bottom: 5px;
+	margin-right: 3px; //fix
+
+		a:link {
+			color: $gray-text;
+			text-decoration: none;
+		}
+
+		a:hover {
+			text-decoration: underline;
+		}
+
+		.commentUser, .toggle {
+		display:inline;
+	    font-size: 8pt;
+	    color: $gray-text;
+
+		}
+
+	}
+
+	.commentText {
+		font-size: 9pt;
+
+		a:link {
+			color: #000000;
+		}
+	}
 }
 
 
