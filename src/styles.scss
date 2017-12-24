@@ -43,11 +43,21 @@ section {
 	padding-top: 10px;
 }
 
+#content {
+	font-family: Verdana, Geneva, sans-serif;
+	@at-root .active#{&} {
+	    display:block;
+	}
+
+	@at-root .hidden#{&} {
+	    display:none;
+	}
+}
+
 .storyContainer {
 	display:flex;
 	flex-direction:row;
 	margin-bottom:7px;
-	font-family: Verdana, Geneva, sans-serif;
 
 	.number {
 		text-align: right;
@@ -81,6 +91,10 @@ section {
 	    		color: $gray-text;
 	    		text-decoration: none;
 			}
+
+			a:hover {
+				text-decoration: underline;
+			}
 		}
 
 	}
@@ -88,6 +102,11 @@ section {
 
 #moreButton {
 	padding-left:35px;
+	display:block;
+
+	@at-root .hidden#{&} {
+	    display:none;
+	}
 }
 
 #alignBox {
@@ -100,6 +119,24 @@ section {
 	@at-root .hidden#{&} {
 	    display:none;
 	}
+}
+
+.commentUser, .toggle {
+    font-size: 8pt;
+    color: $gray-text;
+
+    a:link {
+		color: $gray-text;
+		text-decoration: none;
+	}
+
+	a:hover {
+		text-decoration: underline;
+	}
+}
+
+.commentText {
+	font-size: 9pt;
 }
 
 

@@ -3,6 +3,7 @@ import './styles.scss';
 var models = {
 
 	stories:[],
+	comments:[],
 	loaded:0,
 
 	getTopStories: function(){
@@ -26,6 +27,44 @@ var models = {
 				reject(err);
 			});
 		});
+	},
+
+	getComments: function(i){
+			var promises = [];
+			var story = models.stories[i];
+			promises.push(models.getComment(story.kids[0]));
+			return Promise.all(promises);
+	},
+
+	getComment: function(id){
+		return new Promise(function(resolve,reject){
+			var url = 'https://hacker-news.firebaseio.com/v0/item/'+ id + '.json?print=pretty';
+			console.log(url);
+			fetch(url)
+			.then(function(res){
+				return res.json();
+			})
+			.then(function(res){
+				var result = {
+					by: res.by,
+					text: res.text,
+					id: res.id
+				};
+				resolve(result);
+			})
+			.catch(function(err){
+				reject(err);
+			});
+		});
+
+		// var promises = [];
+		// for (var i=0;i<120;i++){
+		// 	promises.push(models.getTopStory(ids[i]));
+		// }
+		// return Promise.all(promises);
+		//return an array
+
+
 	}
 };
 
@@ -33,12 +72,11 @@ var views = {
 
 	renderTopStory: function(i,obj){
 		var div = document.createElement('div');
-		console.log(obj);
     	div.className = 'storyContainer';
 	    div.innerHTML = '<div class="number">'+ i +'.</div>'
 	    			  + '<div class="storyBox">'
 	    			  + '<div class="storyTitle"><a href="'+ obj.url + '">' + obj.title + '</a></div>'
-	    			  + '<div class="metaInfo">'+ obj.score + ' points | <a href="/comments/'+ obj.id + '">' + obj.descendants + ' comments</a></div>'
+	    			  + '<div class="metaInfo">'+ obj.score + ' points | <a class="storyLink" data-index= "'+(i-1)+'" data-id="'+ obj.id + '" href="#">' + obj.descendants + ' comments</a></div>'
 	    			  + '</div>';
      	document.getElementById('content').appendChild(div);
 	},
@@ -46,15 +84,28 @@ var views = {
 	renderMoreButton: function(){
 		var div = document.createElement('div');
 		div.id = 'moreButton';
+		div.className = 'hidden';
 		div.innerHTML = '<a href="#">More</a>';
 		document.getElementById('app').appendChild(div);
 		document.getElementById("moreButton").addEventListener("click", controllers.loadMoreStories);
+	},
+
+	renderComment: function(obj){
+		var div = document.createElement('div');
+    	div.className = 'commentContainer';
+    	div.id = obj.id;
+	    div.innerHTML = '<div class="commentUser">' + obj.by + '</div>'
+	    			  + '<a class="toggle" data-id="' + obj.id + '"href="javascript:void(0)">[-]</a>'
+	    			  + '<div class="commentText">' + obj.text + '</div>'
+	    			  + '</div>';
+     	document.getElementById('content').appendChild(div);
+     	//add event listener for collapse button
 	}
 }
 
 var controllers = {
 
-	createTopStoriesPage: function(){
+	loadLandingPage: function(){
 		models.getTopStories().then(function(ids){
 
 			var promises = [];
@@ -71,10 +122,60 @@ var controllers = {
 			for (var i=0;i<30;i++){
 				views.renderTopStory(i+1,resp[i]);
 			}
-			views.renderMoreButton();
+
+			// spinning icon related
 			document.getElementById('alignBox').classList.add('hidden');
+			document.getElementById('content').classList.remove('hidden');
+			document.getElementById('content').classList.add('active');
+
+			// add listeners on each story link
+			var storyLinks = document.getElementsByClassName('storyLink');
+			Array.from(storyLinks).forEach(function(element) {
+		      element.addEventListener('click',controllers.goToStoryPage);
+		    });
+
+		    document.getElementById('moreButton').classList.remove('hidden');
 
 		});
+	},
+
+	loadStoryPage: function(i,id){
+		//clear the contents
+		console.log('loadStoryPage');
+		controllers.resetData();
+		views.renderTopStory('',models.stories[i]);
+
+		models.getComments(i).then(function(array){
+			views.renderComment(array[0]);
+
+			//get all the comments here and turn it into an array that can be rendered
+
+		}).then(function(obj){
+		});
+
+		// models.getComments().then(function(ids){
+
+		// 	var promises = [];
+		// 	for (var i=0;i<120;i++){
+		// 		promises.push(models.getTopStory(ids[i]));
+		// 	}
+		// 	return Promise.all(promises);
+		// })
+		// .then(function(resp){
+		// 	models.comments = resp;
+		// 	models.loaded += 1;
+
+		// 	//render views
+		// 	// for (var i=0;i<30;i++){
+		// 	// 	views.renderTopStory(i+1,resp[i]);
+		// 	// }
+
+		// 	// spinning icon related
+		// 	document.getElementById('alignBox').classList.add('hidden');
+		// 	document.getElementById('content').classList.remove('hidden');
+		// 	document.getElementById('content').classList.add('active');
+
+		// });
 	},
 
 	loadMoreStories: function(e){
@@ -84,11 +185,38 @@ var controllers = {
 			views.renderTopStory(i+1,models.stories[i]);
 		}
 		models.loaded++;
+	},
+
+	goToStoryPage: function(e){
+		e.preventDefault();
+		var id = this.getAttribute("data-id");
+		var i = this.getAttribute("data-index");
+		
+		window.history.pushState( { 
+		    story_id: id, 
+		  }, null, "/story/"+id);
+
+		controllers.loadStoryPage(i,id);
+	},
+	resetData: function(page){
+		models.loaded = 0;
+		document.getElementById('alignBox').classList.remove('hidden');
+		document.getElementById('moreButton').classList.add('hidden');
+		document.getElementById('content').innerHTML = "";
 	}
 };
 
 var init = function(){
-	controllers.createTopStoriesPage();
+	//if landing page
+	views.renderMoreButton();
+	controllers.loadLandingPage();
+	//check
+	// controllers.createCommentPage();
 };
+
+window.onpopstate = function (event) {
+	controllers.resetData();
+  	controllers.loadLandingPage();
+}
 
 init();
