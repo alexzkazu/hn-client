@@ -90,6 +90,15 @@ var views = {
 		document.getElementById('app').appendChild(div);
 		document.getElementById("moreButton").addEventListener("click", controllers.loadMoreStories);
 	},
+	renderComments: function(array){
+		for (var k=0; k < array.length; k++){
+			if(array[k] instanceof Array){ //array
+				views.renderComments(array[k]);
+			} else { //object
+				views.renderComment(array[k]);
+			}
+		}
+	},
 
 	renderComment: function(obj){
 		var div = document.createElement('div');
@@ -151,9 +160,7 @@ var controllers = {
 
 		models.getComments(i,existingStories).then(function(array){
 			console.log(array);
-			for (var k=0; k < array.length; k++){
-				views.renderComment(array[k]);
-			}
+			views.renderComments(array);
 
 			document.getElementById('alignBox').classList.add('hidden');
 
