@@ -99,10 +99,11 @@ var models = {
 var views = {
 	defaultSpaceWidth: 40,
 
-	renderTopStory: function(i,obj){
+	renderTopStory: function(i,obj,page){
 		var div = document.createElement('div');
+		var numberString = page == 'landing' ? (i+'.') : '';
     	div.className = 'storyContainer';
-	    div.innerHTML = '<div class="number">'+ i +'.</div>'
+	    div.innerHTML = '<div class="number ' + page + '">'+ numberString +'</div>'
 	    			  + '<div class="storyBox">'
 	    			  + '<div class="storyTitle"><a href="'+ obj.url + '">' + obj.title + '</a></div>'
 	    			  + '<div class="metaInfo">'+ obj.score + ' points | <a class="storyLink" data-index= "'+(i-1)+'" data-id="'+ obj.id + '" href="#">' + obj.descendants + ' comments</a></div>'
@@ -122,6 +123,7 @@ var views = {
 		document.getElementById('app').appendChild(div);
 		document.getElementById("moreButton").addEventListener("click", controllers.loadMoreStories);
 	},
+
 	renderComments: function(array){
 		for (var k=0; k < array.length; k++){
 			if(array[k] instanceof Array){ //array
@@ -172,7 +174,7 @@ var controllers = {
 
 			//render views
 			for (var i=0;i<30;i++){
-				views.renderTopStory(i+1,resp[i]);
+				views.renderTopStory(i+1,resp[i],'landing');
 			}
 
 			// spinning icon related
@@ -186,11 +188,9 @@ var controllers = {
 	},
 
 	loadStoryPage: function(i,id){
-		//clear the contents
-		controllers.resetData('story');
 		var existingStories = models.stories[i];
 
-		views.renderTopStory('',existingStories);
+		views.renderTopStory('',existingStories,'story');
 
 		models.getComments(i,existingStories).then(function(array){
 			views.renderComments(array);
@@ -202,7 +202,7 @@ var controllers = {
 		e.preventDefault();
 
 		for (var i = 30 * models.loaded; i < 30 * (models.loaded+1); i++){
-			views.renderTopStory(i+1,models.stories[i]);
+			views.renderTopStory(i+1,models.stories[i],'landing');
 		}
 		models.loaded++;
 	},
@@ -216,7 +216,9 @@ var controllers = {
 		    story_id: id, 
 		  }, null, "/story/"+id);
 
+		controllers.resetData('story');
 		controllers.loadStoryPage(i,id);
+		window.scrollTo(0, 0);
 	},
 	toggleCollapse:function(e){
 		e.preventDefault();
@@ -244,15 +246,15 @@ var controllers = {
 
 		toggle.classList.toggle('active');
 	},
+
 	resetData: function(nextPage){
 		models.loaded = 0;
-
+	
 		if(nextPage == 'story'){
 			var storyLinks = document.getElementsByClassName('storyLink');
 			Array.from(storyLinks).forEach(function(element) {
 		      element.removeEventListener('click',self.goToStoryPage);
 		    });
-		    document.getElementById("moreButton").removeEventListener("click", controllers.loadMoreStories);
 		} else {
 			var toggleLinks = document.getElementsByClassName('toggle');
 			Array.from(toggleLinks).forEach(function(element) {
@@ -261,8 +263,6 @@ var controllers = {
 				element = null;
 		    });
 		}
-
-		//bring view to the top of the page
 
 		document.getElementById('alignBox').classList.remove('hidden');
 		document.getElementById('moreButton').classList.add('hidden');
@@ -278,6 +278,7 @@ var init = function(){
 window.onpopstate = function (event) {
 	controllers.resetData('landing');
   	controllers.loadLandingPage();
+  	window.scrollTo(0, 0);
 }
 
 init();

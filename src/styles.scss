@@ -67,6 +67,10 @@ section {
     	padding-right: 10px;
 	}
 
+	.number.story {
+	    padding-right:0;
+	}
+
 	.storyBox {
 
 		a:visited {
@@ -157,7 +161,6 @@ section {
 	.metaLine {
 	display:inline-block;
 	margin-bottom: 5px;
-	margin-right: 3px; /* TODO: fix */
 
 		a:link {
 			color: $gray-text;
@@ -172,7 +175,7 @@ section {
 		display:inline;
 	    font-size: 8pt;
 	    color: $gray-text;
-
+	    margin-right: 3px;
 		}
 
 	}
@@ -188,6 +191,10 @@ section {
 	.commentText.hidden { /* TODO: doesn't work nested for some reason? */
 		display:none;
 	}
+}
+
+footer {
+	height:10px;
 }
 
 
