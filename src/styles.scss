@@ -126,6 +126,10 @@ section {
 	margin-bottom:10px;
 	display:flex;
 
+	@at-root .hidden#{&} {
+	    display:none;
+	}
+
 	.spacerContainer {
 		flex-flow:row;
 
@@ -153,7 +157,7 @@ section {
 	.metaLine {
 	display:inline-block;
 	margin-bottom: 5px;
-	margin-right: 3px; //fix
+	margin-right: 3px; /* TODO: fix */
 
 		a:link {
 			color: $gray-text;
@@ -179,6 +183,10 @@ section {
 		a:link {
 			color: #000000;
 		}
+	}
+
+	.commentText.hidden { /* TODO: doesn't work nested for some reason? */
+		display:none;
 	}
 }
 

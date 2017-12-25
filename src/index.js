@@ -107,6 +107,10 @@ var views = {
 	    			  + '<div class="storyTitle"><a href="'+ obj.url + '">' + obj.title + '</a></div>'
 	    			  + '<div class="metaInfo">'+ obj.score + ' points | <a class="storyLink" data-index= "'+(i-1)+'" data-id="'+ obj.id + '" href="#">' + obj.descendants + ' comments</a></div>'
 	    			  + '</div>';
+
+	    var storyLink = div.querySelector('.storyLink');
+	    storyLink.addEventListener('click',controllers.goToStoryPage);
+
      	document.getElementById('content').appendChild(div);
 	},
 
@@ -136,11 +140,17 @@ var views = {
 	    div.innerHTML = '<div class="spacerContainer"><div class="spacer" style="width:'+ (this.defaultSpaceWidth * obj.level) +'px"></div></div>'
 	    			  + '<div class="arrowContainer"><div class="arrow"></div></div>'
 	    			  + '<div class="commentContent"><span class="metaLine"><div class="commentUser">' + obj.by + '</div>'
-	    			  + '<a class="toggle" data-id="' + obj.id + '"href="javascript:void(0)">[-]</a></span>'
+	    			  + '<a class="toggle" data-chain="' + obj.chainLength + '"data-id="' + obj.id + '"href="#">[-]</a></span>'
 	    			  + '<div class="commentText">' + obj.text + '</div>'
 	    			  + '</div></div>';
+
+	    var toggle = div.querySelector('.toggle');
+
+	    toggle.addEventListener('click',controllers.toggleCollapse);
+	    toggle.toggleElement = toggle;
+	    toggle.chainLength = obj.chainLength;
+
      	document.getElementById('content').appendChild(div);
-     	//add event listener for collapse button
 	}
 }
 
@@ -170,12 +180,6 @@ var controllers = {
 			document.getElementById('content').classList.remove('hidden');
 			document.getElementById('content').classList.add('active');
 
-			// add listeners on each story link
-			var storyLinks = document.getElementsByClassName('storyLink');
-			Array.from(storyLinks).forEach(function(element) {
-		      element.addEventListener('click',self.goToStoryPage);
-		    });
-
 		    document.getElementById('moreButton').classList.remove('hidden');
 
 		});
@@ -183,20 +187,14 @@ var controllers = {
 
 	loadStoryPage: function(i,id){
 		//clear the contents
-		controllers.resetData();
+		controllers.resetData('story');
 		var existingStories = models.stories[i];
-
 
 		views.renderTopStory('',existingStories);
 
 		models.getComments(i,existingStories).then(function(array){
-			console.log(array);
 			views.renderComments(array);
-
 			document.getElementById('alignBox').classList.add('hidden');
-
-			//get all the comments here and turn it into an array that can be rendered
-
 		});
 	},
 
@@ -211,8 +209,8 @@ var controllers = {
 
 	goToStoryPage: function(e){
 		e.preventDefault();
-		var id = this.getAttribute("data-id");
-		var i = this.getAttribute("data-index");
+		var id = e.currentTarget.getAttribute("data-id");
+		var i = e.currentTarget.getAttribute("data-index");
 		
 		window.history.pushState( { 
 		    story_id: id, 
@@ -220,8 +218,52 @@ var controllers = {
 
 		controllers.loadStoryPage(i,id);
 	},
-	resetData: function(page){
+	toggleCollapse:function(e){
+		e.preventDefault();
+		var toggle = e.target.toggleElement;
+		var chainLength = e.target.chainLength;
+    	var id = e.currentTarget.getAttribute("data-id");
+    	var commentsContainer = document.getElementById(id);
+
+    	var commentText = e.currentTarget.parentElement.nextElementSibling;
+
+		if(toggle.classList.contains('active')){
+			commentText.classList.remove('hidden');
+    	} else {
+    		commentText.classList.add('hidden');
+    	}
+
+		for(var i=0; i< chainLength-1; i++){
+			commentsContainer = commentsContainer.nextElementSibling;
+			if(toggle.classList.contains('active')){
+				commentsContainer.classList.remove('hidden');
+			} else {
+				commentsContainer.classList.add('hidden');
+			}
+		}
+
+		toggle.classList.toggle('active');
+	},
+	resetData: function(nextPage){
 		models.loaded = 0;
+
+		if(nextPage == 'story'){
+			var storyLinks = document.getElementsByClassName('storyLink');
+			Array.from(storyLinks).forEach(function(element) {
+		      element.removeEventListener('click',self.goToStoryPage);
+		    });
+		    document.getElementById("moreButton").removeEventListener("click", controllers.loadMoreStories);
+		} else {
+			var toggleLinks = document.getElementsByClassName('toggle');
+			Array.from(toggleLinks).forEach(function(element) {
+				console.log('removed listener');
+				element.removeEventListener('click',controllers.toggleCollapse);
+				element = null;
+		    });
+		}
+
+		//bring view to the top of the page
+
 		document.getElementById('alignBox').classList.remove('hidden');
 		document.getElementById('moreButton').classList.add('hidden');
 		document.getElementById('content').innerHTML = "";
@@ -229,15 +271,12 @@ var controllers = {
 };
 
 var init = function(){
-	//if landing page
 	views.renderMoreButton();
 	controllers.loadLandingPage();
-	//check
-	// controllers.createCommentPage();
 };
 
 window.onpopstate = function (event) {
-	controllers.resetData();
+	controllers.resetData('landing');
   	controllers.loadLandingPage();
 }
 
