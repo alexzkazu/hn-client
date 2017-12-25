@@ -50,11 +50,18 @@ var models = {
 				var result = {
 					by: res.by,
 					text: res.text,
-					id: res.id
+					id: res.id,
+					chainLength:1
 				};
+
+				if(res.deleted){
+					resolve(false);
+				}
 
 				if(res.kids){ //there are child comments, run recursively
 					self.getComments(res.id,res).then(function(array){
+						console.log('by '+ result.by + ',chainLength '+ result.chainLength + ',res.kids.length ' + res.kids.length);
+						result.chainLength += res.kids.length;
 						resolve([result,array]);
 					});
 				} else {
@@ -101,10 +108,11 @@ var views = {
 	},
 
 	renderComment: function(obj){
+		if(!obj) return;
 		var div = document.createElement('div');
     	div.className = 'commentContainer';
     	div.id = obj.id;
-	    div.innerHTML = '<div class="arrowContainer"><div class="arrow"></div></div>'
+	    div.innerHTML = '<div class="spacer"></div><div class="arrowContainer"><div class="arrow"></div></div>'
 	    			  + '<div class="commentContent"><span class="metaLine"><div class="commentUser">' + obj.by + '</div>'
 	    			  + '<a class="toggle" data-id="' + obj.id + '"href="javascript:void(0)">[-]</a></span>'
 	    			  + '<div class="commentText">' + obj.text + '</div>'
