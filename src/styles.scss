@@ -126,6 +126,14 @@ section {
 	margin-bottom:10px;
 	display:flex;
 
+	.spacerContainer {
+		flex-flow:row;
+
+		.spacer {
+			width:0;
+		}
+	}
+
 	.arrowContainer {
 	    flex-flow: row;
 

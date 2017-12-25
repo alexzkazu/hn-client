@@ -2,6 +2,7 @@ import './styles.scss';
 
 var models = {
 
+	//ideally, we would cache all of this data on a server, and serve that to the client
 	stories:[],
 	comments:[],
 	loaded:0,
@@ -32,7 +33,7 @@ var models = {
 	getComments: function(i,obj){
 			var promises = [];
 			for (var j=0; j< obj.kids.length; j++){
-				promises.push(models.getComment(obj.kids[j]));
+				promises.push(this.getComment(obj.kids[j]));
 			}
 			return Promise.all(promises);
 	},
@@ -50,7 +51,8 @@ var models = {
 					by: res.by,
 					text: res.text,
 					id: res.id,
-					chainLength:1
+					chainLength:1,
+					level:0
 				};
 
 				//if comment was deleted, return false
@@ -60,23 +62,25 @@ var models = {
 
 				//if there are child comments, run recursively
 				if(res.kids){ 
-					self.getComments(res.id,res).then(function(array){						
+					self.getComments(res.id,res).then(function(array){
 						
-						var countChainLength = function(array){
+						var countChainLengthAndLevel = function(array){
 							for (var a=0;a< array.length;a++){
 								if(array[a] == false){
 									continue;
 								}
 								//if an array, go deeper
 								if (array[a] instanceof Array){ 
-									countChainLength(array[a]);
+									countChainLengthAndLevel(array[a]);
 								} else { 
 									//if an object, increment comment chain length
 									result.chainLength += 1;
+									//increment the level too
+									array[a].level++;
 								}
 							}
 						};
-						countChainLength(array);
+						countChainLengthAndLevel(array);
 
 						resolve([result,array]);
 					});
@@ -93,6 +97,7 @@ var models = {
 };
 
 var views = {
+	defaultSpaceWidth: 40,
 
 	renderTopStory: function(i,obj){
 		var div = document.createElement('div');
@@ -116,9 +121,9 @@ var views = {
 	renderComments: function(array){
 		for (var k=0; k < array.length; k++){
 			if(array[k] instanceof Array){ //array
-				views.renderComments(array[k]);
+				this.renderComments(array[k]);
 			} else { //object
-				views.renderComment(array[k]);
+				this.renderComment(array[k]);
 			}
 		}
 	},
@@ -128,7 +133,8 @@ var views = {
 		var div = document.createElement('div');
     	div.className = 'commentContainer';
     	div.id = obj.id;
-	    div.innerHTML = '<div class="spacer"></div><div class="arrowContainer"><div class="arrow"></div></div>'
+	    div.innerHTML = '<div class="spacerContainer"><div class="spacer" style="width:'+ (this.defaultSpaceWidth * obj.level) +'px"></div></div>'
+	    			  + '<div class="arrowContainer"><div class="arrow"></div></div>'
 	    			  + '<div class="commentContent"><span class="metaLine"><div class="commentUser">' + obj.by + '</div>'
 	    			  + '<a class="toggle" data-id="' + obj.id + '"href="javascript:void(0)">[-]</a></span>'
 	    			  + '<div class="commentText">' + obj.text + '</div>'
@@ -141,6 +147,7 @@ var views = {
 var controllers = {
 
 	loadLandingPage: function(){
+		var self = this;
 		models.getTopStories().then(function(ids){
 
 			var promises = [];
@@ -166,7 +173,7 @@ var controllers = {
 			// add listeners on each story link
 			var storyLinks = document.getElementsByClassName('storyLink');
 			Array.from(storyLinks).forEach(function(element) {
-		      element.addEventListener('click',controllers.goToStoryPage);
+		      element.addEventListener('click',self.goToStoryPage);
 		    });
 
 		    document.getElementById('moreButton').classList.remove('hidden');
@@ -183,6 +190,7 @@ var controllers = {
 		views.renderTopStory('',existingStories);
 
 		models.getComments(i,existingStories).then(function(array){
+			console.log(array);
 			views.renderComments(array);
 
 			document.getElementById('alignBox').classList.add('hidden');
