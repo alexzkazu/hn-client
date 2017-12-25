@@ -41,7 +41,6 @@ var models = {
 		var self = this;
 		return new Promise(function(resolve,reject){
 			var url = 'https://hacker-news.firebaseio.com/v0/item/'+ id + '.json?print=pretty';
-			console.log(url);
 			fetch(url)
 			.then(function(res){
 				return res.json();
@@ -54,14 +53,31 @@ var models = {
 					chainLength:1
 				};
 
-				if(res.deleted){
+				//if comment was deleted, return false
+				if(res.deleted){ 
 					resolve(false);
 				}
 
-				if(res.kids){ //there are child comments, run recursively
-					self.getComments(res.id,res).then(function(array){
-						console.log('by '+ result.by + ',chainLength '+ result.chainLength + ',res.kids.length ' + res.kids.length);
-						result.chainLength += res.kids.length;
+				//if there are child comments, run recursively
+				if(res.kids){ 
+					self.getComments(res.id,res).then(function(array){						
+						
+						var countChainLength = function(array){
+							for (var a=0;a< array.length;a++){
+								if(array[a] == false){
+									continue;
+								}
+								//if an array, go deeper
+								if (array[a] instanceof Array){ 
+									countChainLength(array[a]);
+								} else { 
+									//if an object, increment comment chain length
+									result.chainLength += 1;
+								}
+							}
+						};
+						countChainLength(array);
+
 						resolve([result,array]);
 					});
 				} else {
@@ -167,7 +183,6 @@ var controllers = {
 		views.renderTopStory('',existingStories);
 
 		models.getComments(i,existingStories).then(function(array){
-			console.log(array);
 			views.renderComments(array);
 
 			document.getElementById('alignBox').classList.add('hidden');
