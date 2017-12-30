@@ -1,11 +1,17 @@
 import './styles.scss';
 
+var page = {
+	LANDING: 'landing',
+	STORY: 'story'
+}
+
 var models = {
 
 	//ideally, we would cache all of this data on a server, and serve that to the client
 	stories:[],
 	comments:[],
 	loaded:0,
+
 
 	getTopStories: function(){
 		var url = 'https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty';
@@ -99,11 +105,11 @@ var models = {
 var views = {
 	defaultSpaceWidth: 40,
 
-	renderTopStory: function(i,obj,page){
+	renderTopStory: function(i,obj,pageLoad){
 		var div = document.createElement('div');
-		var numberString = page == 'landing' ? (i+'.') : '';
+		var numberString = pageLoad == page.LANDING ? (i+'.') : '';
     	div.className = 'storyContainer';
-	    div.innerHTML = '<div class="number ' + page + '">'+ numberString +'</div>'
+	    div.innerHTML = '<div class="number ' + pageLoad + '">'+ numberString +'</div>'
 	    			  + '<div class="storyBox">'
 	    			  + '<div class="storyTitle"><a href="'+ obj.url + '">' + obj.title + '</a></div>'
 	    			  + '<div class="metaInfo">'+ obj.score + ' points | <a class="storyLink" data-index= "'+(i-1)+'" data-id="'+ obj.id + '" href="#">' + obj.descendants + ' comments</a></div>'
@@ -174,7 +180,7 @@ var controllers = {
 
 			//render views
 			for (var i=0;i<30;i++){
-				views.renderTopStory(i+1,resp[i],'landing');
+				views.renderTopStory(i+1,resp[i],page.LANDING);
 			}
 
 			// spinning icon related
@@ -190,7 +196,7 @@ var controllers = {
 	loadStoryPage: function(i,id){
 		var existingStories = models.stories[i];
 
-		views.renderTopStory('',existingStories,'story');
+		views.renderTopStory('',existingStories,page.STORY);
 
 		models.getComments(i,existingStories).then(function(array){
 			views.renderComments(array);
@@ -202,7 +208,7 @@ var controllers = {
 		e.preventDefault();
 
 		for (var i = 30 * models.loaded; i < 30 * (models.loaded+1); i++){
-			views.renderTopStory(i+1,models.stories[i],'landing');
+			views.renderTopStory(i+1,models.stories[i],page.LANDING);
 		}
 		models.loaded++;
 	},
@@ -216,10 +222,11 @@ var controllers = {
 		    story_id: id, 
 		  }, null, "/story/"+id);
 
-		controllers.resetData('story');
+		controllers.resetData(page.STORY);
 		controllers.loadStoryPage(i,id);
 		window.scrollTo(0, 0);
 	},
+	
 	toggleCollapse:function(e){
 		e.preventDefault();
 		var toggle = e.target.toggleElement;
@@ -250,7 +257,7 @@ var controllers = {
 	resetData: function(nextPage){
 		models.loaded = 0;
 	
-		if(nextPage == 'story'){
+		if(nextPage == page.STORY){
 			var storyLinks = document.getElementsByClassName('storyLink');
 			Array.from(storyLinks).forEach(function(element) {
 		      element.removeEventListener('click',self.goToStoryPage);
@@ -276,7 +283,7 @@ var init = function(){
 };
 
 window.onpopstate = function (event) {
-	controllers.resetData('landing');
+	controllers.resetData(page.LANDING);
   	controllers.loadLandingPage();
   	window.scrollTo(0, 0);
 }
